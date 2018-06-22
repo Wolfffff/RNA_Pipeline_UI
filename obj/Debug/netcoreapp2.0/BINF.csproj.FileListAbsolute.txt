@@ -1,0 +1,12 @@
+/Users/Wolf/Downloads/School/BINF/BINF/bin/Debug/netcoreapp2.0/BINF.deps.json
+/Users/Wolf/Downloads/School/BINF/BINF/bin/Debug/netcoreapp2.0/BINF.runtimeconfig.json
+/Users/Wolf/Downloads/School/BINF/BINF/bin/Debug/netcoreapp2.0/BINF.runtimeconfig.dev.json
+/Users/Wolf/Downloads/School/BINF/BINF/bin/Debug/netcoreapp2.0/BINF.dll
+/Users/Wolf/Downloads/School/BINF/BINF/bin/Debug/netcoreapp2.0/BINF.pdb
+/Users/Wolf/Downloads/School/BINF/BINF/obj/Debug/netcoreapp2.0/BINF.csprojResolveAssemblyReference.cache
+/Users/Wolf/Downloads/School/BINF/BINF/obj/Debug/netcoreapp2.0/BINF.csproj.CoreCompileInputs.cache
+/Users/Wolf/Downloads/School/BINF/BINF/obj/Debug/netcoreapp2.0/UserSecretsAssemblyInfo.cs
+/Users/Wolf/Downloads/School/BINF/BINF/obj/Debug/netcoreapp2.0/BINF.AssemblyInfoInputs.cache
+/Users/Wolf/Downloads/School/BINF/BINF/obj/Debug/netcoreapp2.0/BINF.AssemblyInfo.cs
+/Users/Wolf/Downloads/School/BINF/BINF/obj/Debug/netcoreapp2.0/BINF.dll
+/Users/Wolf/Downloads/School/BINF/BINF/obj/Debug/netcoreapp2.0/BINF.pdb
