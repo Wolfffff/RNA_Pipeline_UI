@@ -1,0 +1,41 @@
+﻿@model string[]
+
+@{
+    ViewData["Title"] = "Result Files";
+}
+
+
+<fieldset>
+@if(ViewBag.Response != null){
+<div style="height:120px;width:400px;border:1px solid #ccc;font:16px/26px Georgia, Garamond, Serif;overflow:auto;">
+
+    @ViewBag.Response
+
+</div>
+
+    }
+    <legend style="padding-top:10px; padding-bottom: 10px;">Results Files</legend>
+
+    <div class="col-xs-24" style="padding: 10px;">
+        <div class="col-xs-8"><b>File(by location)</b></div>
+        <div class="col-xs-4"><b> Download </b> </div>
+    </div>
+
+    <hr/>
+
+    @foreach (var doc in Model)
+    {
+    <div class="col-xs-24" style="padding: 10px;">
+            <div class="col-xs-8">
+                <a>@doc</a>
+            </div>
+        <div class="col-xs-4">
+                <a href="http://localhost:65126/api/downloadResult/?fileName=@doc">Download</a>
+            </div>
+
+        </div>
+    }
+
+</fieldset>
+
+

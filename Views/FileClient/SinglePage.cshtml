@@ -1,0 +1,297 @@
+﻿@model Expenses.Web.ViewModels.HomepageVM
+
+@{
+    ViewBag.Title = "Expense Tool";
+}
+<div class="">
+
+    <h2 data-bind="text: pageTitle"></h2>
+    <p style="font-size:10px">This report will be sent to @Model.BossName</p>
+</div>
+<div class="alert alert-warning">If this is your first time submitting an expense report or your information has changed, please fill out the <a href="~/Content/ACH Form.docx" download>ACH form</a> and submit it to accountspayable@inuvo.com</div>
+<div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h4>Add an expense</h4>
+            <div class="form-group">
+                <label for="receipt-file">
+                    Receipt
+                </label>
+                <input type="file" class="form-control" id="receipt-file" />
+
+            </div>
+            <form data-bind="validateSubmit: addExpense" id="add-expense-form">
+                <div class="form-group">
+                    <label for="expense-date" class="control-label">Date (Ex. 10/15/2017)</label>
+                    <input type="date" id="expense-date" class="form-control" data-bind="textInput: currentExpense().date" required />
+                </div>
+                <div class="form-group">
+                    <label for="type" class="control-label">Type</label>
+                    <select class="form-control" id="type" data-bind="value: currentExpense().type">
+                        @foreach (var type in Model.Types)
+                        {
+                            <option>@type</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group" data-bind="visible: currentExpense().type() === 'Mileage'"> 
+                    <label for="mileage-to-description" class="control-label">Trip to description (Example from Little Rock Office to the Airport)</label>
+                    <input type="text" class="form-control" id="mileage-to-description" data-bind="textinput: currentExpense().mileageToDescription" />
+                    <label for="mileage" class="control-label">How many miles?</label>
+                    <input type="number" class="form-control" id="mileage" placeholder="0" data-bind="textInput: currentExpense().mileageToCount" />
+
+                    <label for="mileage-from-description" class="control-label">Return trip description (Example from the Airport to home)</label>
+                    <input type="text" class="form-control" id="mileage-from-description" data-bind="textinput: currentExpense().mileageFromDescription" />
+                    <label for="mileagefrom" class="control-label">How many miles?</label>
+                    <input type="number" class="form-control" id="mileagefrom" placeholder="0" data-bind="textInput: currentExpense().mileageFromCount" />
+
+                </div>
+                <div class="form-group" data-bind="visible: currentExpense().type() === 'Hotel'">
+                    <label for="daysinhotel" class="control-label">Days in Hotel</label>
+                    <input type="number" class="form-control" id="daysinhotel" placeholder="0" data-bind="textInput: currentExpense().daysInHotel" />
+                </div>
+                <div class="form-group">
+                    <label for="description" class="control-label">Description</label>
+                    <input type="text" id="description" class="form-control" data-bind="textInput: currentExpense().description" required />
+                </div>
+
+                <div class="form-group" data-bind="visible: currentExpense().type() !== 'Mileage'">
+                    <label for="amount" class="control-label">Total Amount ($)</label>
+                    <div class="form-inline">
+                        <input type="number" id="dollar-amount" class="form-control" data-bind="textInput: currentExpense().dollarAmount" placeholder="123" min="1" /><span class="currency-seperator">.</span>
+                        <input type="number" class="form-control" id="cent-amount" placeholder="00" data-bind="textInput: currentExpense().centAmount" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-plus-sign"></span> Add</button>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-6 report-details">
+            <h4>Expense Report Review</h4>
+            <div data-bind="foreach: expenseDates" class="expense-date">
+                <h5 data-bind="text: $data"></h5>
+                <hr />
+                <div data-bind="foreach: $parent.getExpensesByDate($data)" class="expense-list">
+                    <div class="row">
+                        <div class="col-xs-6" data-bind="visible: type() !== 'Mileage'">
+                            <p class="small">Type: <strong><span data-bind="text: type"></span></strong></p>
+                            <p><span data-bind="text: description"></span>: <strong>$<span data-bind="text: dollarAmount"></span>.<span data-bind="text: centAmount"></span></strong></p>
+                        </div>
+                        <div class="col-xs-6" data-bind="visible: type() === 'Mileage'">
+                            <p class="small">Type: <strong><span data-bind="text: type"></span></strong></p>
+                            <p><span data-bind="text: description"></span>: <strong>$<span data-bind="text: parseFloat((parseInt(mileageToCount()) + parseInt(mileageFromCount())) * 0.55).toFixed(2)"></span></strong></p>
+                        </div>
+                        <div class="col-xs-6">
+                            <button type="button" class="btn btn-xs btn-danger" data-bind="click: $root.removeExpense"><span class="glyphicon glyphicon-minus-sign"></span> Remove</button>
+                        </div>
+                    </div>
+                </div>
+                <p class="bg-info total"><strong>Day Total: $<span data-bind="text: $root.getDayExpenseTotal($data)"></span></strong></p>
+            </div>
+            <div data-bind="visible: showSubmitExpenseButton">
+                <hr />
+                <p class="bg-info total"><strong>Total: $<span data-bind="text: getExpenseTotal()"></span></strong></p>
+                <button type="button" class="btn btn-success" id="submit-expenses" data-bind="click: submitExpenseReport">Submit Expenses</button>
+                <div id="ajaxSpinnerContainer">
+                    <img src="/images/ajax-loader.gif" id="ajaxSpinnerImage" title="working...">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script>
+        var Expense = function () {
+            var date = ko.observable('');
+            var type = ko.observable('');
+            var description = ko.observable('');
+            var dollarAmount = ko.observable(0);
+            var centAmount = ko.observable('00');
+            var daysInHotel = ko.observable(0);
+            var mileageToCount = ko.observable(0);
+            var mileageToDescription = ko.observable('');
+            var mileageFromCount = ko.observable(0);
+            var mileageFromDescription = ko.observable('');
+
+            return {
+                date: date,
+                type: type,
+                description: description,
+                dollarAmount: dollarAmount,
+                centAmount: centAmount,
+                daysInHotel: daysInHotel,
+                mileageToCount: mileageToCount,
+                mileageToDescription: mileageToDescription,
+                mileageFromCount: mileageFromCount,
+                mileageFromDescription: mileageFromDescription
+            }
+        };
+        var viewModel = (function () {
+            var animationSpeed = 175;
+            var allEmployees = @Html.Raw(Json.Encode(Model.Employees));
+            var selectedEmployee = @Html.Raw(Json.Encode(Model.AuthUser));
+
+            var pageTitle = ko.observable('Creating expense report for ' + selectedEmployee.Name);
+            var expenses = ko.observableArray([]);
+            var currentExpense = ko.observable(new Expense());
+            var showSubmitExpenseButton = ko.pureComputed(function () {
+                if (expenses().length > 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+            $(function () {
+                if(selectedEmployee.Name != null){
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.RouteUrl("CreateImageContainer")',
+                        data: { name: selectedEmployee.Name }
+                    }).fail(function(){
+                        toastr.error("An error happened creating your folder for receipts, please try again.");
+                    });
+                }else{
+                    toastr.error("Name is null");
+                }
+            });
+
+            var addExpense = function () {
+                if(new Date(Date.parse(currentExpense().date())).setHours(0,0,0,0) >= new Date().setHours(0,0,0,0)){
+                    toastr.error("Can't add expenses in the future!");
+                }else{
+                    expenses.push(currentExpense());
+                    $("#receipt-file").val('');
+                    currentExpense(new Expense());
+                    toastr.success("Expense added!");
+                }
+            };
+
+            var expenseDates = ko.computed(function () {
+                var rawDatesArray = [];
+                ko.utils.arrayForEach(expenses(), function (expense) {
+                    rawDatesArray.push(expense.date());
+                });
+                rawDatesArray.sort();
+                return ko.utils.arrayGetDistinctValues(rawDatesArray);
+            });
+
+            var getExpensesByDate = function (date) {
+                var dateExpenses = [];
+                ko.utils.arrayForEach(expenses(), function (expense) {
+                    if (expense.date() === date) {
+                        dateExpenses.push(expense);
+                    }
+                });
+
+                return dateExpenses;
+            };
+
+            var getDayExpenseTotal = function (date) {
+                var expenseData = getExpensesByDate(date);
+                var total = 0.00;
+                ko.utils.arrayForEach(expenseData, function (expense) {
+                    var amount = 0;
+                    if(expense.type() === "Mileage"){
+                        amount = parseFloat(expense.mileageToCount() * 0.55);
+                        amount += parseFloat(expense.mileageFromCount() * 0.55);
+                    }else{
+                        amount = expense.dollarAmount() + "." + expense.centAmount();
+                    }
+                    total += parseFloat(amount);
+                });
+
+                return total.toFixed(2);
+            };
+
+            var getExpenseTotal = function () {
+                var total = 0.00;
+                ko.utils.arrayForEach(expenses(), function (expense) {
+                    var amount = 0;
+                    if(expense.type() === "Mileage"){
+                        amount = parseFloat(expense.mileageToCount() * 0.55);
+                        amount += parseFloat(expense.mileageFromCount() * 0.55);
+                    }else{
+                        amount = expense.dollarAmount() + "." + expense.centAmount();
+                    }
+                    total += parseFloat(amount);
+                });
+
+                return total.toFixed(2);
+            };
+
+            var removeExpense = function (expense) {
+                expenses.remove(expense);
+                toastr.error("Expense removed!");
+            };
+
+            var submitExpenseReport = function(){
+                var submitButton = document.getElementById("submit-expenses");
+                submitButton.disabled = true;
+                $.ajax({
+                    type: "POST",
+                    url: "@Url.RouteUrl("SubmitExpenses")",
+                    data: { employeeId: selectedEmployee.Id, expenseData: expenses() }
+                }).done(function(data){
+                    location.href = '@Url.RouteUrl("ExpensesSubmitted")';
+                    submitButton.disabled = false;
+                }).fail(function(){
+                    toastr.error("An error happened saving your expenses, please try again...");
+                    submitButton.disabled = false;
+                });
+            };
+
+            return {
+                pageTitle: pageTitle,
+                currentExpense: currentExpense,
+                addExpense: addExpense,
+                expenses: expenses,
+                expenseDates: expenseDates,
+                getExpensesByDate: getExpensesByDate,
+                getDayExpenseTotal: getDayExpenseTotal,
+                showSubmitExpenseButton: showSubmitExpenseButton,
+                getExpenseTotal: getExpenseTotal,
+                removeExpense: removeExpense,
+                allEmployees: allEmployees,
+                selectedEmployee: selectedEmployee,
+                submitExpenseReport: submitExpenseReport
+            }
+        })();
+        $(function () {
+            $("#add-expense-form").on("submit", function (e) {
+                var files = document.getElementById("receipt-file").files;
+                var formData = new FormData();
+                if(files[0]){
+                    if(files[0].type.indexOf("png") === -1 && files[0].type.indexOf("jpg") === -1 && files[0].type.indexOf("jpeg") === -1 && files[0].type.indexOf("pdf") === -1){
+                        toastr.error("File type not accepted, please upload an image or pdf.");
+                    }else{
+                        //upload dat file.
+                        formData.append("name", viewModel.selectedEmployee.Name);
+                        formData.append("file", files[0], files[0].name);
+                        var ajaxUpload = new XMLHttpRequest();
+                        ajaxUpload.open("post", "@Url.RouteUrl("Upload")", false);
+                        ajaxUpload.onload = function(){
+                            if(ajaxUpload.status !== 200){
+                                toastr.error("An error happened on uploading your receipt, please remove the expense and try again.");
+                            }
+                        };
+                        ajaxUpload.send(formData);
+                    }
+                }
+
+            });
+            $(document)
+.ajaxStart(function(){
+    $("#ajaxSpinnerImage").show();
+})
+.ajaxStop(function(){
+    $("#ajaxSpinnerImage").hide();
+});
+            ko.applyBindings(viewModel);
+        });
+
+    </script>
+}
+

@@ -1,0 +1,33 @@
+﻿@model NGS.Models.AllUploadedFiles
+
+
+
+
+<fieldset>
+    <legend style="padding-top:10px; padding-bottom: 10px;">Uploaded Files</legend>
+
+    <div class="col-xs-12" style="padding: 10px;">
+        <div class="col-xs-4"><b>File</b></div>
+        <div class="col-xs-4"><b>Description/Group</b></div>
+        <div class="col-xs-4"><b> Delete </b> </div>
+    </div>
+
+    <hr/>
+
+    @foreach (var doc in Model.FileShortDescriptions)
+    {
+        <div class="col-xs-12" style="padding: 10px;">
+            <div class="col-xs-4">
+                <a href="~/api/download/@doc.Id">@doc.Name</a>
+            </div>
+            <span class="col-xs-4" name="Description" id="Description" >  @doc.Description</span>
+        <div class="col-xs-4">
+                <a href="~/api/delete/@doc.Id">Delete</a>
+            </div>
+
+        </div>
+    }
+
+</fieldset>
+
+
