@@ -1,0 +1,6 @@
+﻿Skip to content Features Business Explore Marketplace Pricing This repository Search Sign in or Sign up 6 37 17 damienbod/AspNetCoreFileUploadFileTable Code Issues 0 Pull requests 0 Projects 0 Insights AspNetCoreFileUploadFileTable/src/AspNetCoreFileUploadFileTable/config.json f69abb9 on Jan 5, 2017 @damienbod damienbod updating naming 6 lines (6 sloc) 271 Bytes {
+  "ApplicationConfiguration": {
+    "SQLConnectionString": "server=127.0.0.1;userid=wolf;password=EIT.binf.123;database=NGS;",
+    "ServerUploadFolder": "\\~\"
+  }
+}
